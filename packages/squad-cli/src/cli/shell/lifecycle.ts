@@ -209,8 +209,9 @@ function parseTeamManifest(content: string): DiscoveredAgent[] {
     // Skip non-table lines
     if (!trimmed.startsWith('|')) continue;
 
-    // Skip the header row (contains "Name") and separator row (contains "---")
-    if (trimmed.includes('---') || /\|\s*Name\s*\|/i.test(trimmed)) {
+    // Skip the header row and separator row (---).
+    // Accept any first-column label: "Name", "Member", "Agent", etc.
+    if (trimmed.includes('---') || /^\|\s*\w[\w\s]*\s*\|/.test(trimmed) && !headerParsed) {
       headerParsed = true;
       continue;
     }
@@ -222,15 +223,15 @@ function parseTeamManifest(content: string): DiscoveredAgent[] {
       .map(c => c.trim())
       .filter(c => c.length > 0);
 
-    if (cells.length < 4) continue;
+    if (cells.length < 2) continue;
 
     const name = cells[0]!;
     const role = cells[1]!;
     const charter = cells[2]?.startsWith('`') ? cells[2].replace(/`/g, '') : undefined;
 
-    // Extract status text from emoji-prefixed status (e.g. "✅ Active" → "Active")
-    const rawStatus = cells[3]!;
-    const status = rawStatus.replace(/^[^\w]*/, '').trim();
+    // Status is optional — default to Active when column is absent.
+    const rawStatus = cells[3] ?? 'Active';
+    const status = rawStatus.replace(/^[^\w]*/, '').trim() || 'Active';
 
     agents.push({ name, role, charter, status });
   }
