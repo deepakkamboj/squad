@@ -111,7 +111,7 @@ export async function startScheduler(cwd = process.cwd()): Promise<void> {
     emitGlobal('scheduler_stop');
     stopWatch();
     releaseSchedulerLock();
-    console.log(`\n[scheduler] ${brand.name} scheduler stopped`);
+    console.log(`\n[scheduler] ${brandName} scheduler stopped`);
     process.exit(0);
   };
 
