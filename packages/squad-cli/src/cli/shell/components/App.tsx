@@ -383,21 +383,22 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
       ? { borderStyle, borderColor: noColor ? undefined : borderColor }
       : {};
 
-    // Rainbow banner: cycle hue across characters within each row so every
-    // glyph has a slightly different color — full spectrum left-to-right.
+    // Rainbow banner: one solid color per row, cycling red→orange→yellow→green→blue→purple.
+    // Matches the pattern used by the pwagent CLI banner (banner.ts RAINBOW array).
     const RAINBOW_HEX = [
-      '#FF4040', '#FF6820', '#FFB800', '#40C860',
-      '#40AAFF', '#7B5FFF', '#CC40FF', '#FF40AA',
+      '#FF4040', // red
+      '#FF8C00', // orange
+      '#FFD700', // yellow
+      '#40C860', // green
+      '#409CFF', // blue
+      '#AA60FF', // purple
     ];
     const rainbowLines = brand.bannerArt
-      ? brand.bannerArt.split('\n').map((line, li) => {
-          if (noColor) return <Text key={li} bold>{line}</Text>;
-          const chars = line.split('');
-          const coloredChars = chars.map((ch, ci) => (
-            <Text key={ci} bold color={RAINBOW_HEX[(li + ci) % RAINBOW_HEX.length]}>{ch}</Text>
-          ));
-          return <Box key={li}>{coloredChars}</Box>;
-        })
+      ? brand.bannerArt.split('\n').map((line, li) =>
+          noColor
+            ? <Text key={li} bold>{line}</Text>
+            : <Text key={li} bold color={RAINBOW_HEX[li % RAINBOW_HEX.length]}>{line}</Text>
+        )
       : null;
 
     return (
