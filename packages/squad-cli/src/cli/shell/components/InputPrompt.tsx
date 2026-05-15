@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { getBrand } from '@bradygaster/squad-sdk';
 import { isNoColor, useTerminalWidth } from '../terminal.js';
-import { createCompleter } from '../autocomplete.js';
+import { createCompleter, getSuggestions, type Suggestion } from '../autocomplete.js';
 
 interface InputPromptProps {
   onSubmit: (value: string) => void;
@@ -13,9 +13,7 @@ interface InputPromptProps {
   messageCount?: number;
 }
 
-/** Return context-appropriate placeholder hint based on session progress.
- *  The header banner already shows @agent / /help guidance, so the prompt
- *  placeholder provides complementary tips instead of duplicating it. */
+/** Return context-appropriate placeholder hint based on session progress. */
 function getHintText(messageCount: number, narrow: boolean): string {
   if (messageCount < 10) {
     return narrow ? ' Tab · ↑↓ history' : ' Tab completes · ↑↓ history';
@@ -24,9 +22,49 @@ function getHintText(messageCount: number, narrow: boolean): string {
 }
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const MAX_VISIBLE_SUGGESTIONS = 8;
+const LABEL_COL_WIDTH = 20;
 
-export const InputPrompt: React.FC<InputPromptProps> = ({ 
-  onSubmit, 
+interface SuggestionBoxProps {
+  suggestions: Suggestion[];
+  selectedIndex: number;
+  accent: string;
+  noColor: boolean;
+  terminalWidth: number;
+}
+
+const SuggestionBox: React.FC<SuggestionBoxProps> = ({ suggestions, selectedIndex, accent, noColor, terminalWidth }) => {
+  const visible = suggestions.slice(0, MAX_VISIBLE_SUGGESTIONS);
+  const overflow = suggestions.length - MAX_VISIBLE_SUGGESTIONS;
+  // Leave room for prefix (3) + label col + 2 padding + description
+  const descMaxLen = Math.max(0, terminalWidth - LABEL_COL_WIDTH - 8);
+
+  return (
+    <Box flexDirection="column">
+      {visible.map((s, i) => {
+        const selected = i === selectedIndex;
+        const label = s.label.trimEnd().padEnd(LABEL_COL_WIDTH);
+        const desc = s.description ? s.description.slice(0, descMaxLen) : '';
+        const color = selected && !noColor ? accent : undefined;
+        const dim = !selected;
+        return (
+          <Box key={s.label}>
+            <Text color={color} dimColor={dim} bold={selected}>
+              {selected ? ' › ' : '   '}{label}
+            </Text>
+            {desc ? <Text dimColor>{desc}</Text> : null}
+          </Box>
+        );
+      })}
+      {overflow > 0 && (
+        <Text dimColor>   … {overflow} more — keep typing to filter</Text>
+      )}
+    </Box>
+  );
+};
+
+export const InputPrompt: React.FC<InputPromptProps> = ({
+  onSubmit,
   prompt = '> ',
   disabled = false,
   agentNames = [],
@@ -46,18 +84,49 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   const pasteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const valueRef = useRef('');
 
+  // Suggestion state
+  const [suggestionIndex, setSuggestionIndex] = useState(-1);
+  const suggestionIndexRef = useRef(-1);
+  const [dismissed, setDismissed] = useState(false);
+  const dismissedRef = useRef(false);
+
+  const setSuggIdx = (idx: number) => {
+    suggestionIndexRef.current = idx;
+    setSuggestionIndex(idx);
+  };
+
+  const dismiss = () => {
+    dismissedRef.current = true;
+    setDismissed(true);
+    setSuggIdx(-1);
+  };
+
+  const resetDismiss = () => {
+    if (dismissedRef.current) {
+      dismissedRef.current = false;
+      setDismissed(false);
+    }
+  };
+
+  // Suggestions derived from current value; kept in a ref so useInput can read them synchronously
+  const suggestions = useMemo(
+    () => (disabled ? [] : getSuggestions(value, agentNames)),
+    [value, agentNames, disabled],
+  );
+  const suggestionsRef = useRef<Suggestion[]>([]);
+  suggestionsRef.current = suggestions;
+
+  const showSuggestions = !dismissed && suggestions.length > 0;
+
   // When transitioning from disabled → enabled, restore buffered input
   useEffect(() => {
     if (wasDisabledRef.current && !disabled) {
-      // Clear any pending paste timer from before disable
       if (pasteTimerRef.current) {
         clearTimeout(pasteTimerRef.current);
         pasteTimerRef.current = null;
       }
-      // Drain pending input queue first (fast typing during transition)
       const pending = pendingInputRef.current.join('');
       pendingInputRef.current = [];
-      
       const combined = bufferRef.current + pending;
       if (combined) {
         valueRef.current = combined;
@@ -73,12 +142,12 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   const completer = useMemo(() => createCompleter(agentNames), [agentNames]);
 
-  // Tab-cycling state
+  // Tab-cycling state (used when no suggestion box is shown)
   const tabMatchesRef = useRef<string[]>([]);
   const tabIndexRef = useRef(0);
   const tabPrefixRef = useRef('');
 
-  // Animate spinner when disabled (processing) — static in NO_COLOR mode
+  // Spinner animation
   useEffect(() => {
     if (!disabled || noColor) return;
     const timer = setInterval(() => {
@@ -87,7 +156,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     return () => clearInterval(timer);
   }, [disabled, noColor]);
 
-  // Clean up paste detection timer on unmount
   useEffect(() => {
     return () => {
       if (pasteTimerRef.current) clearTimeout(pasteTimerRef.current);
@@ -96,7 +164,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   useInput((input, key) => {
     if (disabled) {
-      // Allow slash commands through while processing (read-only, no dispatch)
       if (key.return && bufferRef.current.trimStart().startsWith('/')) {
         const cmd = bufferRef.current.trim();
         bufferRef.current = '';
@@ -105,7 +172,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         onSubmit(cmd);
         return;
       }
-      // Preserve newlines from pasted text in disabled buffer
       if (key.return) {
         bufferRef.current += '\n';
         setBufferDisplay(bufferRef.current);
@@ -118,23 +184,40 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         return;
       }
       if (input) {
-        // Queue input to catch race during disabled→enabled transition
         pendingInputRef.current.push(input);
         bufferRef.current += input;
         setBufferDisplay(bufferRef.current);
       }
       return;
     }
-    
-    // Race guard: if we just re-enabled but haven't drained queue yet, queue this too
+
     if (wasDisabledRef.current && pendingInputRef.current.length > 0) {
       pendingInputRef.current.push(input || '');
       return;
     }
-    
+
+    // Escape — dismiss suggestion box
+    if (key.escape) {
+      if (suggestionsRef.current.length > 0 && !dismissedRef.current) {
+        dismiss();
+        return;
+      }
+      return;
+    }
+
+    // Enter — select highlighted suggestion OR submit
     if (key.return) {
-      // Debounce to detect multi-line paste: if more input arrives
-      // within 10ms this is a paste and the newline should be preserved.
+      if (suggestionIndexRef.current >= 0 && suggestionsRef.current.length > 0) {
+        const sel = suggestionsRef.current[suggestionIndexRef.current];
+        if (sel) {
+          valueRef.current = sel.label;
+          setValue(sel.label);
+          setSuggIdx(-1);
+          // Keep dismissed=false so new suggestions appear (e.g. @agent has trailing space → no suggestions)
+        }
+        return;
+      }
+      // Normal submit
       if (pasteTimerRef.current) clearTimeout(pasteTimerRef.current);
       valueRef.current += '\n';
       pasteTimerRef.current = setTimeout(() => {
@@ -147,25 +230,44 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         }
         valueRef.current = '';
         setValue('');
+        setSuggIdx(-1);
+        dismissedRef.current = false;
+        setDismissed(false);
       }, 10);
       return;
     }
-    
+
     if (key.backspace || key.delete) {
       valueRef.current = valueRef.current.slice(0, -1);
       setValue(valueRef.current);
+      resetDismiss();
+      setSuggIdx(-1);
       return;
     }
-    
-    if (key.upArrow && history.length > 0) {
-      const newIndex = historyIndex === -1 ? history.length - 1 : Math.max(0, historyIndex - 1);
-      setHistoryIndex(newIndex);
-      valueRef.current = history[newIndex]!;
-      setValue(history[newIndex]!);
+
+    // Arrow keys — navigate suggestions if visible, else navigate history
+    if (key.upArrow) {
+      if (!dismissedRef.current && suggestionsRef.current.length > 0) {
+        const n = suggestionsRef.current.length;
+        const cur = suggestionIndexRef.current;
+        setSuggIdx(cur <= 0 ? n - 1 : cur - 1);
+        return;
+      }
+      if (history.length > 0) {
+        const newIndex = historyIndex === -1 ? history.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        valueRef.current = history[newIndex]!;
+        setValue(history[newIndex]!);
+      }
       return;
     }
-    
+
     if (key.downArrow) {
+      if (!dismissedRef.current && suggestionsRef.current.length > 0) {
+        const n = suggestionsRef.current.length;
+        setSuggIdx((suggestionIndexRef.current + 1) % n);
+        return;
+      }
       if (historyIndex >= 0) {
         const newIndex = historyIndex + 1;
         if (newIndex >= history.length) {
@@ -180,16 +282,26 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       }
       return;
     }
-    
+
+    // Tab — select suggestion if box is open, else cycle old-style completions
     if (key.tab) {
+      if (!dismissedRef.current && suggestionsRef.current.length > 0) {
+        const idx = suggestionIndexRef.current >= 0 ? suggestionIndexRef.current : 0;
+        const sel = suggestionsRef.current[idx];
+        if (sel) {
+          valueRef.current = sel.label;
+          setValue(sel.label);
+          setSuggIdx(-1);
+        }
+        return;
+      }
+      // Fallback: old Tab-cycling
       if (tabPrefixRef.current !== value) {
-        // New prefix — compute matches
         tabPrefixRef.current = value;
         tabIndexRef.current = 0;
         const [matches] = completer(value);
         tabMatchesRef.current = matches;
       } else {
-        // Same prefix — cycle to next match
         if (tabMatchesRef.current.length > 0) {
           tabIndexRef.current = (tabIndexRef.current + 1) % tabMatchesRef.current.length;
         }
@@ -200,13 +312,16 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       }
       return;
     }
-    // Reset tab state on any other key
+
+    // Reset tab state and suggestion selection on any regular key
     tabMatchesRef.current = [];
     tabPrefixRef.current = '';
-    
+
     if (input && !key.ctrl && !key.meta) {
       valueRef.current += input;
       setValue(valueRef.current);
+      setSuggIdx(-1);
+      resetDismiss();
     }
   });
 
@@ -235,15 +350,28 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       </Box>
     );
   }
+
   return (
     <Box flexDirection="column">
+      {showSuggestions && (
+        <SuggestionBox
+          suggestions={suggestions}
+          selectedIndex={suggestionIndex}
+          accent={noColor ? '' : accent}
+          noColor={noColor}
+          terminalWidth={width}
+        />
+      )}
       <Box>
         <Text color={noColor ? undefined : accent} bold>{narrow ? brand.narrowPrompt : brand.prompt}</Text>
         <Text>{value}</Text>
         <Text color={noColor ? undefined : accent} bold>▌</Text>
       </Box>
-      {!value && (
+      {!value && !showSuggestions && (
         <Text dimColor>{getHintText(messageCount, narrow)}</Text>
+      )}
+      {showSuggestions && (
+        <Text dimColor>  ↑↓ navigate · Tab/Enter select · Esc dismiss</Text>
       )}
     </Box>
   );
