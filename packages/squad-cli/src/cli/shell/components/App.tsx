@@ -8,6 +8,18 @@ import { parseInput, type ParsedInput } from '../router.js';
 import { executeCommand } from '../commands.js';
 import { loadWelcomeData, getRoleEmoji } from '../lifecycle.js';
 import { isNoColor, useTerminalWidth, useTerminalHeight, useLayoutTier } from '../terminal.js';
+
+/** Map coordinator/Squad label to the current brand name. Handles old agent
+ *  manifests that still say "Squad" as well as the literal 'coordinator' key. */
+function resolveAgentLabel(agentName: string | undefined | null): string {
+  const brand = getBrand();
+  if (!agentName) return 'agent';
+  const lower = agentName.toLowerCase();
+  if (lower === 'coordinator' || lower === 'squad' || agentName === brand.coordinatorAgentName) {
+    return brand.nameUpper;
+  }
+  return agentName;
+}
 import { Separator } from './Separator.js';
 import type { WelcomeData } from '../lifecycle.js';
 import type { SessionRegistry } from '../sessions.js';
@@ -467,7 +479,7 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
                   <Text dimColor wrap="wrap">{msg.content}</Text>
                 ) : (
                   <>
-                    <Text color={noColor ? undefined : 'green'} bold>{emoji ? `${emoji} ` : ''}{(msg.agentName === 'coordinator' ? getBrand().nameUpper : msg.agentName) ?? 'agent'}:</Text>
+                    <Text color={noColor ? undefined : 'green'} bold>{emoji ? `${emoji} ` : ''}{resolveAgentLabel(msg.agentName)}:</Text>
                     <Text wrap="wrap">{renderMarkdownInline(msg.content)}</Text>
                     {duration && <Text dimColor>({duration})</Text>}
                   </>

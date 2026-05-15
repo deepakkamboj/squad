@@ -1218,7 +1218,7 @@ export async function runShell(): Promise<void> {
         registry,
         renderer,
         teamRoot,
-        version: pkg.version,
+        version: process.env['SQUAD_BRAND_VERSION'] ?? pkg.version,
         onReady: (api: ShellApi) => {
           // Wrap addMessage to auto-save on every message
           const origAdd = api.addMessage;

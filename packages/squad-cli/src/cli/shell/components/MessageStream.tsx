@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Text } from 'ink';
+import { getBrand } from '@bradygaster/squad-sdk';
 import { getRoleEmoji } from '../lifecycle.js';
 import { isNoColor, useTerminalWidth, useLayoutTier, type LayoutTier } from '../terminal.js';
 import { Separator } from './Separator.js';
+
+function resolveAgentLabel(agentName: string): string {
+  const brand = getBrand();
+  const lower = agentName.toLowerCase();
+  if (lower === 'coordinator' || lower === 'squad' || agentName === brand.coordinatorAgentName) {
+    return brand.nameUpper;
+  }
+  return agentName;
+}
 import { useMessageFade } from '../useAnimation.js';
 import { ThinkingIndicator } from './ThinkingIndicator.js';
 import type { ThinkingPhase } from './ThinkingIndicator.js';
@@ -283,7 +293,7 @@ export const MessageStream: React.FC<MessageStreamProps> = ({
                   </>
                 ) : (
                   <>
-                    <Text color={noColor ? undefined : 'green'} bold dimColor={isFading}>{emoji ? `${emoji} ` : ''}{(msg.agentName === 'coordinator' ? 'Squad' : msg.agentName) ?? 'agent'}:</Text>
+                    <Text color={noColor ? undefined : 'green'} bold dimColor={isFading}>{emoji ? `${emoji} ` : ''}{resolveAgentLabel(msg.agentName ?? 'agent')}:</Text>
                     <Text wrap="wrap" dimColor={isFading}>{renderMarkdownInline(wrapTableContent(msg.content, contentWidth, tier))}</Text>
                     {duration && <Text color="gray">({duration})</Text>}
                   </>
@@ -304,7 +314,7 @@ export const MessageStream: React.FC<MessageStreamProps> = ({
                   {roleMap.has(agentName)
                     ? `${getRoleEmoji(roleMap.get(agentName)!)} `
                     : ''}
-                  {agentName === 'coordinator' ? 'Squad' : agentName}:
+                  {resolveAgentLabel(agentName)}:
                 </Text>
                 <Text wrap="wrap">{renderMarkdownInline(wrapTableContent(content, contentWidth, tier))}</Text>
                 <Text color={noColor ? undefined : 'cyan'}>▌</Text>
