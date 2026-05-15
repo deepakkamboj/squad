@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Text, useInput } from 'ink';
-import { getBrand } from '@bradygaster/squad-sdk';
+import { getBrand } from '../../brand.js';
 import { isNoColor, useTerminalWidth } from '../terminal.js';
 import { createCompleter, getSuggestions, type Suggestion, type AgentInfo } from '../autocomplete.js';
 

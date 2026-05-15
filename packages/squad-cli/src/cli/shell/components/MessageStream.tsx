@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Text } from 'ink';
-import { getBrand } from '@bradygaster/squad-sdk';
+import { getBrand } from '../../brand.js';
 import { getRoleEmoji } from '../lifecycle.js';
 import { isNoColor, useTerminalWidth, useLayoutTier, type LayoutTier } from '../terminal.js';
 import { Separator } from './Separator.js';

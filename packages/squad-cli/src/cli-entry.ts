@@ -90,7 +90,8 @@ function _handleTopLevelSignal(signal: 'SIGINT' | 'SIGTERM'): void {
 process.on('SIGINT', () => _handleTopLevelSignal('SIGINT'));
 process.on('SIGTERM', () => _handleTopLevelSignal('SIGTERM'));
 
-import { FSStorageProvider, resolveSquadState, getBrand } from '@bradygaster/squad-sdk';
+import { FSStorageProvider, resolveSquadState } from '@bradygaster/squad-sdk';
+import { getBrand } from './cli/brand.js';
 import type { SquadStateContext, StateBackendType } from '@bradygaster/squad-sdk';
 import path from 'node:path';
 import { fatal, SquadError } from './cli/core/errors.js';

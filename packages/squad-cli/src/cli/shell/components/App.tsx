@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Box, Text, Static, useApp, useInput, useStdout } from 'ink';
-import { getBrand } from '@bradygaster/squad-sdk';
+import { getBrand } from '../../brand.js';
 import { AgentPanel } from './AgentPanel.js';
 import { MessageStream, renderMarkdownInline, formatDuration } from './MessageStream.js';
 import { InputPrompt } from './InputPrompt.js';

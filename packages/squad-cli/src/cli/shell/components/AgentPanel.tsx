@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Text } from 'ink';
-import { getBrand } from '@bradygaster/squad-sdk';
+import { getBrand } from '../../brand.js';
 import { isNoColor, useLayoutTier } from '../terminal.js';
 import { Separator } from './Separator.js';
 import { useCompletionFlash } from '../useAnimation.js';
