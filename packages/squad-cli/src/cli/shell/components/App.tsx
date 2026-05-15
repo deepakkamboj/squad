@@ -417,19 +417,12 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
     return items;
   }, [staticMessages, sessionId]);
 
-  // Fill the entire viewport. Ink's fullscreen clearTerminal path and
-  // trailing-newline behavior have been patched out of ink.js, so we can
-  // safely use the full terminal height without triggering scroll-to-top.
-  // logUpdate tracks exactly rootHeight lines and erases/rewrites them
-  // on each render cycle without cursor drift.
-  const rootHeight = Math.max(terminalHeight, 8);
-
   // Derive maxVisible from terminal height so taller terminals show more
   // conversation context. Reserve ~8 rows for header/input/agent-panel chrome.
   const maxVisible = Math.max(Math.floor((terminalHeight - 8) / 3), 3);
 
   return (
-    <Box flexDirection="column" height={rootHeight}>
+    <Box flexDirection="column">
       {/* Static block: header first (stays at top of scroll buffer), then messages */}
       <Static items={allStaticItems}>
         {(item) => {
@@ -490,7 +483,7 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
           Messages are kept here (not in Static) so the user can always see the
           recent conversation without scrolling. maxVisible caps the message
           count to prevent overflow into the InputPrompt area. */}
-      <Box flexDirection="column" flexGrow={1}>
+      <Box flexDirection="column">
         <AgentPanel agents={agents} streamingContent={streamingContent} />
         <MessageStream messages={messages} agents={agents} streamingContent={streamingContent} processing={processing} activityHint={activityHint || mentionHint} agentActivities={agentActivities} thinkingPhase={thinkingPhase} maxVisible={maxVisible} hasConversation={hasConversation} />
       </Box>

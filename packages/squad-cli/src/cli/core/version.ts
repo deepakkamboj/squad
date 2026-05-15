@@ -14,6 +14,8 @@ const storage = new FSStorageProvider();
  * compiled dist/cli/core/version.js and bundled cli.js at the root.
  */
 export function getPackageVersion(): string {
+  // Downstream wrappers (e.g. pwagent) can inject their own version.
+  if (process.env['SQUAD_BRAND_VERSION']) return process.env['SQUAD_BRAND_VERSION'];
   const currentFile = fileURLToPath(import.meta.url);
   let dir = path.dirname(currentFile);
   for (let i = 0; i < 6; i++) {

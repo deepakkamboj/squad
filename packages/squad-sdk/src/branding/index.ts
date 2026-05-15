@@ -105,14 +105,23 @@ export function getBrand(cwd: string = process.cwd()): Brand {
   if (cached) return cached;
   let brand: Brand = { ...DEFAULT_BRAND };
 
-  // Layer 2: ~/.squad/brand.json
+  // Layer 2: ~/.squad/brand.json (global user default)
   const homeBrand = join(homedir(), ".squad", "brand.json");
   if (existsSync(homeBrand)) {
     brand = mergeBrand(brand, readJson(homeBrand));
   }
 
-  // Layer 3: workspace overrides
-  for (const candidate of [join(cwd, "squad.brand.json"), join(cwd, ".squad", "brand.json")]) {
+  // Layer 3: workspace config files (all checked, later entries win).
+  // If SQUAD_BRAND_NAME is already set in env, also check .<name>/brand.json
+  // so downstream tools (e.g. pwagent) get their own folder automatically.
+  const envName = process.env["SQUAD_BRAND_NAME"];
+  const extraDir = envName ? join(cwd, `.${envName}`, "brand.json") : null;
+  const candidates = [
+    join(cwd, "squad.brand.json"),
+    ...(extraDir ? [extraDir] : []),
+    join(cwd, ".squad", "brand.json"),
+  ];
+  for (const candidate of candidates) {
     if (existsSync(candidate)) {
       brand = mergeBrand(brand, readJson(candidate));
     }

@@ -21,7 +21,7 @@ import type { SquadSession } from '@bradygaster/squad-sdk/client';
 import type { SquadPermissionHandler } from '@bradygaster/squad-sdk/client';
 import { RateLimitError } from '@bradygaster/squad-sdk/adapter/errors';
 import type { ShellMessage } from './types.js';
-import { FSStorageProvider, initSquadTelemetry, TIMEOUTS, StreamingPipeline, recordAgentSpawn, recordAgentDuration, recordAgentError, recordAgentDestroy, RuntimeEventBus, resolveSquad, resolveGlobalSquadPath } from '@bradygaster/squad-sdk';
+import { FSStorageProvider, initSquadTelemetry, TIMEOUTS, StreamingPipeline, recordAgentSpawn, recordAgentDuration, recordAgentError, recordAgentDestroy, RuntimeEventBus, resolveSquad, resolveGlobalSquadPath, getBrand } from '@bradygaster/squad-sdk';
 import type { UsageEvent } from '@bradygaster/squad-sdk';
 import { enableShellMetrics, recordShellSessionDuration, recordAgentResponseLatency, recordShellError } from './shell-metrics.js';
 import { parseAgentFromDescription } from './agent-name-parser.js';
@@ -1353,6 +1353,7 @@ export async function runShell(): Promise<void> {
 
   // NO_COLOR-aware exit message with session summary
   const nc = process.env['NO_COLOR'] != null && process.env['NO_COLOR'] !== '';
+  const brandName = getBrand().name;
   const prefix = nc ? '-- ' : '\x1b[36m--\x1b[0m ';
 
   if (messageCount > 0) {
@@ -1361,9 +1362,9 @@ export async function runShell(): Promise<void> {
     const durationStr = mins >= 1 ? `${mins} min` : '<1 min';
     const agentNames = [...agentSessions.keys()];
     const agentStr = agentNames.length > 0 ? ` with ${agentNames.join(', ')}.` : '';
-    console.log(`${prefix}Squad out. ${durationStr}${agentStr} ${messageCount} message${messageCount === 1 ? '' : 's'}.`);
+    console.log(`${prefix}${brandName} out. ${durationStr}${agentStr} ${messageCount} message${messageCount === 1 ? '' : 's'}.`);
   } else {
-    console.log(`${prefix}Squad out.`);
+    console.log(`${prefix}${brandName} out.`);
   }
 
   // If we exited due to a signal, propagate the conventional exit code
