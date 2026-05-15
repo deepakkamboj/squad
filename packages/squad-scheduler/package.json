@@ -17,9 +17,6 @@
     "build": "tsc -p tsconfig.json",
     "clean": "rimraf dist"
   },
-  "dependencies": {
-    "@bradygaster/squad-sdk": "github:deepakkamboj/squad#dev&path:packages/squad-sdk"
-  },
   "devDependencies": {
     "typescript": "^5.3.3",
     "rimraf": "^5.0.5"

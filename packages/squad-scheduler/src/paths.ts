@@ -1,13 +1,16 @@
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import { getBrand } from '@bradygaster/squad-sdk';
+
+/** Resolved brand name — SQUAD_BRAND_NAME env var or "squad" fallback. */
+function brandName(): string {
+  return process.env['SQUAD_BRAND_NAME'] ?? 'squad';
+}
 
 /** Base directory for scheduler state. Respects SQUAD_SCHEDULER_HOME env var. */
 export function schedulerHome(): string {
   if (process.env['SQUAD_SCHEDULER_HOME']) return process.env['SQUAD_SCHEDULER_HOME'];
-  const brand = getBrand();
   // e.g. ~/.pwagent/scheduler or ~/.squad/scheduler
-  return join(homedir(), `.${brand.name}`, 'scheduler');
+  return join(homedir(), `.${brandName()}`, 'scheduler');
 }
 
 export function statePath(): string {
@@ -15,7 +18,7 @@ export function statePath(): string {
 }
 
 export function pidPath(): string {
-  return join(schedulerHome(), `${getBrand().name}-scheduler.pid`);
+  return join(schedulerHome(), `${brandName()}-scheduler.pid`);
 }
 
 export function lockPath(jobId: string): string {
@@ -27,7 +30,7 @@ export function eventsPath(jobId: string): string {
 }
 
 export function logPath(jobId: string): string {
-  return join(homedir(), `.${getBrand().name}`, 'logs', 'scheduler', `${jobId}.log`);
+  return join(homedir(), `.${brandName()}`, 'logs', 'scheduler', `${jobId}.log`);
 }
 
 /** Resolve squad.schedule.json — cwd or SQUAD_SCHEDULE_FILE env var. */

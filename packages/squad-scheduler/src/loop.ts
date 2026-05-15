@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto';
-import { getBrand } from '@bradygaster/squad-sdk';
 import type { SchedulerJob } from './types.js';
 import { parseCron, nextDue } from './cron.js';
 import { loadState, saveState, getJobState, setJobState } from './state.js';
@@ -74,15 +73,16 @@ async function runJob(job: SchedulerJob): Promise<void> {
 }
 
 export async function startScheduler(cwd = process.cwd()): Promise<void> {
-  const brand = getBrand();
+  const brandName = process.env['SQUAD_BRAND_NAME'] ?? 'squad';
+  const brandUpper = process.env['SQUAD_BRAND_NAME_UPPER'] ?? brandName.toUpperCase();
 
   if (!acquireSchedulerLock()) {
-    console.error(`[scheduler] another ${brand.name} scheduler is already running`);
+    console.error(`[scheduler] another ${brandName} scheduler is already running`);
     process.exit(1);
   }
 
   let jobs = loadConfig(cwd);
-  console.log(`[scheduler] ${brand.nameUpper} scheduler started — ${jobs.length} job(s) loaded`);
+  console.log(`[scheduler] ${brandUpper} scheduler started — ${jobs.length} job(s) loaded`);
   console.log(`[scheduler] config: ${process.env['SQUAD_SCHEDULE_FILE'] ?? `${cwd}/squad.schedule.json`}`);
 
   // Initialise nextDueAt for new jobs
