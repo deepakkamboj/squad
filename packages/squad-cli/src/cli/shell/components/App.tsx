@@ -467,7 +467,7 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
                   <Text dimColor wrap="wrap">{msg.content}</Text>
                 ) : (
                   <>
-                    <Text color={noColor ? undefined : 'green'} bold>{emoji ? `${emoji} ` : ''}{(msg.agentName === 'coordinator' ? 'Squad' : msg.agentName) ?? 'agent'}:</Text>
+                    <Text color={noColor ? undefined : 'green'} bold>{emoji ? `${emoji} ` : ''}{(msg.agentName === 'coordinator' ? getBrand().nameUpper : msg.agentName) ?? 'agent'}:</Text>
                     <Text wrap="wrap">{renderMarkdownInline(msg.content)}</Text>
                     {duration && <Text dimColor>({duration})</Text>}
                   </>

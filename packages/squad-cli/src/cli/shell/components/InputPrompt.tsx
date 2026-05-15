@@ -210,21 +210,23 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     }
   });
 
+  const brand = getBrand();
+  const accent = brand.accentColor;
+
   if (disabled) {
     return (
       <Box flexDirection="column">
         <Box>
           {noColor ? (
             <>
-              <Text bold>{narrow ? 'sq ' : '◆ squad '}</Text>
+              <Text bold>{narrow ? brand.narrowPrompt : brand.prompt}</Text>
               <Text>[working...]</Text>
               {bufferDisplay ? <Text> {bufferDisplay}</Text> : null}
             </>
           ) : (
             <>
-              <Text color="cyan" bold>{narrow ? 'sq ' : '◆ squad '}</Text>
-              <Text color="cyan">{SPINNER_FRAMES[spinFrame]}</Text>
-              <Text color="cyan" bold>{'> '}</Text>
+              <Text color={accent} bold>{narrow ? brand.narrowPrompt : brand.prompt}</Text>
+              <Text color={accent}>{SPINNER_FRAMES[spinFrame]}</Text>
               {bufferDisplay ? <Text dimColor>{bufferDisplay}</Text> : null}
             </>
           )}
@@ -233,9 +235,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       </Box>
     );
   }
-
-  const brand = getBrand();
-  const accent = brand.accentColor;
   return (
     <Box flexDirection="column">
       <Box>
