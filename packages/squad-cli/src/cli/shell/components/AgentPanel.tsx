@@ -7,6 +7,18 @@ import { useCompletionFlash } from '../useAnimation.js';
 import { getStatusTag } from '../agent-status.js';
 import type { AgentSession } from '../types.js';
 
+function getAgentCategory(role: string): string {
+  const r = role.toLowerCase();
+  if (r.includes('lead') || r.includes('supervisor') || r.includes('coordinator') || r.includes('architect')) return 'Orchestration';
+  if (r.includes('test') || r.includes('qa') || r.includes('quality') || r.includes('tester') || r.includes('runner')) return 'Testing';
+  if (r.includes('discover') || r.includes('triage') || r.includes('analyz') || r.includes('audit') || r.includes('report')) return 'Analysis';
+  if (r.includes('dev') || r.includes('engineer') || r.includes('coding') || r.includes('code')) return 'Engineering';
+  if (r.includes('release') || r.includes('ops') || r.includes('infra') || r.includes('distrib') || r.includes('deploy')) return 'Operations';
+  if (r.includes('design') || r.includes('visual') || r.includes('graphic')) return 'Design';
+  if (r.includes('doc') || r.includes('devrel') || r.includes('writer') || r.includes('sdk')) return 'Docs';
+  return 'General';
+}
+
 interface AgentPanelProps {
   agents: AgentSession[];
   streamingContent?: Map<string, string>;
@@ -164,47 +176,58 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
     );
   }
 
-  // Wide layout: full detail with models, full hints
+  // Wide layout: vertical list grouped by category
+  const categories = new Map<string, AgentSession[]>();
+  for (const agent of agents) {
+    const cat = getAgentCategory(agent.role);
+    if (!categories.has(cat)) categories.set(cat, []);
+    categories.get(cat)!.push(agent);
+  }
+
   return (
     <Box flexDirection="column" paddingX={1} marginTop={1}>
-      {/* Agent roster */}
-      <Box flexWrap="wrap" gap={1}>
-        {agents.map((agent) => {
-          const active = agent.status === 'streaming' || agent.status === 'working';
-          const errored = agent.status === 'error';
-          return (
-            <Box key={agent.name} gap={0}>
-              <Text
-                dimColor={!active && !errored}
-                bold={active}
-                color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
-              >
-                {getRoleEmoji(agent.role)} {agent.name}
-              </Text>
-              {active && (
-                <Box marginLeft={0}>
-                  <Text> </Text>
-                  <PulsingDot />
-                  {agent.activityHint && <Text color={noColor ? undefined : 'green'}> {agent.activityHint}</Text>}
-                  {agent.model && <Text dimColor> ({agent.model})</Text>}
-                </Box>
-              )}
-              {errored && (
-                <Text color={noColor ? undefined : 'red'} bold> [ERR]</Text>
-              )}
-              {completionFlash.has(agent.name) && (
-                noColor
-                  ? <Text bold> ✓ Done</Text>
-                  : <Text color="green" bold> ✓ Done</Text>
-              )}
-            </Box>
-          );
-        })}
-      </Box>
+      {Array.from(categories.entries()).map(([cat, catAgents], catIdx) => (
+        <Box key={cat} flexDirection="column" marginTop={catIdx === 0 ? 0 : 1}>
+          <Text dimColor>{cat.toUpperCase()}</Text>
+          {catAgents.map((agent) => {
+            const active = agent.status === 'streaming' || agent.status === 'working';
+            const errored = agent.status === 'error';
+            const elapsed = elapsedRef.current.get(agent.name);
+            return (
+              <Box key={agent.name} paddingLeft={2}>
+                <Text
+                  dimColor={!active && !errored}
+                  bold={active}
+                  color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
+                >
+                  {getRoleEmoji(agent.role)} {agent.name}
+                </Text>
+                <Text dimColor>  {agent.role}</Text>
+                {active && (
+                  <>
+                    <Text> </Text>
+                    <PulsingDot />
+                    {agent.activityHint && <Text color={noColor ? undefined : 'green'}> {agent.activityHint.slice(0, 30)}</Text>}
+                    {elapsed && <Text dimColor> ({elapsed})</Text>}
+                    {agent.model && <Text dimColor> [{agent.model}]</Text>}
+                  </>
+                )}
+                {errored && <Text color={noColor ? undefined : 'red'} bold> [ERR]</Text>}
+                {completionFlash.has(agent.name) && (
+                  noColor ? <Text bold> ✓ Done</Text> : <Text color="green" bold> ✓ Done</Text>
+                )}
+                {!active && !errored && !completionFlash.has(agent.name) && (
+                  <Text dimColor>  {getStatusTag(agent.status)}</Text>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
+      ))}
 
-      {/* Status line — rich progress for active agents */}
+      {/* Progress for active agents */}
       {activeAgents.length > 0 ? (
-        <Box flexDirection="column">
+        <Box flexDirection="column" marginTop={1}>
           {activeAgents.length > 1 && (
             <Text dimColor> {activeAgents.length} agents working in parallel</Text>
           )}
@@ -214,16 +237,17 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
             const hint = a.activityHint ?? 'working';
             return (
               <Text key={a.name} color={noColor ? undefined : 'yellow'}>
-                {' '}{getRoleEmoji(a.role)} {a.name} — {hint}{elapsed ? ` (${elapsed})` : ''}{a.model ? ` [${a.model}]` : ''}
+                {' '}{getRoleEmoji(a.role)} {a.name} — {hint}{elapsed ? ` (${elapsed})` : ''}
               </Text>
             );
           })}
         </Box>
       ) : (
-        <Text dimColor>{' '}{agents.length} agent{agents.length !== 1 ? 's' : ''} ready</Text>
+        <Box marginTop={1}>
+          <Text dimColor>{' '}{agents.length} agent{agents.length !== 1 ? 's' : ''} ready</Text>
+        </Box>
       )}
 
-      {/* Separator between panel and message stream */}
       <Separator marginTop={1} />
     </Box>
   );
