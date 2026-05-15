@@ -285,17 +285,17 @@ export const MessageStream: React.FC<MessageStreamProps> = ({
                 <Text color="gray" wrap="wrap">{msg.content}</Text>
               </Box>
             ) : (
-              <Box gap={1} paddingLeft={msg.role === 'user' ? 0 : 2}>
+              <Box paddingLeft={msg.role === 'user' ? 0 : 2}>
                 {msg.role === 'user' ? (
                   <>
-                    <Text color={noColor ? undefined : 'cyan'} bold dimColor={isFading}>❯</Text>
+                    <Text color={noColor ? undefined : 'cyan'} bold dimColor={isFading}>❯ </Text>
                     <Text color={noColor ? undefined : 'cyan'} wrap="wrap" dimColor={isFading}>{msg.content}</Text>
                   </>
                 ) : (
                   <>
-                    <Text color={noColor ? undefined : 'green'} bold dimColor={isFading}>{emoji ? `${emoji} ` : ''}{resolveAgentLabel(msg.agentName ?? 'agent')}:</Text>
+                    <Text color={noColor ? undefined : 'green'} bold dimColor={isFading}>{emoji ? `${emoji} ` : ''}{resolveAgentLabel(msg.agentName ?? 'agent')}: </Text>
                     <Text wrap="wrap" dimColor={isFading}>{renderMarkdownInline(wrapTableContent(msg.content, contentWidth, tier))}</Text>
-                    {duration && <Text color="gray">({duration})</Text>}
+                    {duration && <Text color="gray"> ({duration})</Text>}
                   </>
                 )}
               </Box>
@@ -309,13 +309,12 @@ export const MessageStream: React.FC<MessageStreamProps> = ({
         <>
           {Array.from(streamingContent.entries()).map(([agentName, content]) => (
             content ? (
-              <Box key={agentName} gap={1}>
+              <Box key={agentName}>
                 <Text color={noColor ? undefined : 'green'} bold>
                   {roleMap.has(agentName)
                     ? `${getRoleEmoji(roleMap.get(agentName)!)} `
                     : ''}
-                  {resolveAgentLabel(agentName)}:
-                </Text>
+                  {resolveAgentLabel(agentName)}: </Text>
                 <Text wrap="wrap">{renderMarkdownInline(wrapTableContent(content, contentWidth, tier))}</Text>
                 <Text color={noColor ? undefined : 'cyan'}>▌</Text>
               </Box>

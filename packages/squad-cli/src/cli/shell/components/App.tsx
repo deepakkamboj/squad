@@ -479,11 +479,11 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
           return (
             <Box key={item.key} flexDirection="column" width={contentWidth}>
               {isNewTurn && tier !== 'narrow' && <Separator marginTop={1} />}
-              <Box gap={1} paddingLeft={msg.role === 'user' ? 0 : 2}>
+              <Box paddingLeft={msg.role === 'user' ? 0 : 2}>
                 {msg.role === 'user' ? (
                   <Box flexDirection="column">
-                    <Box gap={1}>
-                      <Text color={noColor ? undefined : 'cyan'} bold>❯</Text>
+                    <Box>
+                      <Text color={noColor ? undefined : 'cyan'} bold>❯ </Text>
                       <Text color={noColor ? undefined : 'cyan'} wrap="wrap">{msg.content.split('\n')[0] ?? ''}</Text>
                     </Box>
                     {msg.content.split('\n').slice(1).map((line, li) => (
@@ -496,9 +496,9 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
                   <Text dimColor wrap="wrap">{msg.content}</Text>
                 ) : (
                   <>
-                    <Text color={noColor ? undefined : 'green'} bold>{emoji ? `${emoji} ` : ''}{resolveAgentLabel(msg.agentName)}:</Text>
+                    <Text color={noColor ? undefined : 'green'} bold>{emoji ? `${emoji} ` : ''}{resolveAgentLabel(msg.agentName)}: </Text>
                     <Text wrap="wrap">{renderMarkdownInline(msg.content)}</Text>
-                    {duration && <Text dimColor>({duration})</Text>}
+                    {duration && <Text dimColor> ({duration})</Text>}
                   </>
                 )}
               </Box>
