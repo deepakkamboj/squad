@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Box, Text, Static, useApp, useInput, useStdout } from 'ink';
+import { getBrand } from '@bradygaster/squad-sdk';
 import { AgentPanel } from './AgentPanel.js';
 import { MessageStream, renderMarkdownInline, formatDuration } from './MessageStream.js';
 import { InputPrompt } from './InputPrompt.js';
@@ -330,35 +331,53 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
 
   // Memoize the header box — rendered once into Static scroll buffer at the top.
   const headerElement = useMemo(() => {
+    const brand = getBrand();
+    const accent = brand.accentColor;
+    const warn = brand.warnColor;
+    const borderColor = brand.bannerBorderColor || accent;
+    // Cast to Ink's accepted border-style strings; bad values fall back to "single".
+    const borderStyle = brand.bannerBorderStyle as
+      | 'single' | 'double' | 'round' | 'bold' | 'singleDouble' | 'doubleSingle' | 'classic';
+    const showBorder = brand.bannerBorderStyle !== 'none';
+    const issuesSuffix = brand.issuesUrl ? ` — file issues at ${brand.issuesUrl}` : '';
+
     // Narrow: minimal header, no border
     if (tier === 'narrow') {
       return (
         <Box flexDirection="column" paddingX={1}>
-          <Text bold color={noColor ? undefined : 'cyan'}>SQUAD</Text>
+          <Text bold color={noColor ? undefined : accent}>{brand.nameUpper}</Text>
           <Text dimColor>v{version}</Text>
-          <Text color={noColor ? undefined : 'yellow'} dimColor>⚠️  Experimental</Text>
+          <Text color={noColor ? undefined : warn} dimColor>⚠️  Experimental</Text>
         </Box>
       );
     }
 
     // Normal: abbreviated header
     if (tier === 'normal') {
+      const boxProps = showBorder
+        ? { borderStyle, borderColor: noColor ? undefined : borderColor }
+        : {};
       return (
-        <Box flexDirection="column" borderStyle="round" borderColor={noColor ? undefined : 'cyan'} paddingX={1}>
-          <Text bold color={noColor ? undefined : 'cyan'}>SQUAD v{version}</Text>
-          <Text dimColor>Type naturally · <Text bold>@Agent</Text> · <Text bold>/help</Text></Text>
-          <Text color={noColor ? undefined : 'yellow'} dimColor>⚠️  Experimental preview</Text>
+        <Box flexDirection="column" {...boxProps} paddingX={1}>
+          <Text bold color={noColor ? undefined : accent}>{brand.nameUpper} v{version}</Text>
+          <Text dimColor>{brand.hintFull}</Text>
+          <Text color={noColor ? undefined : warn} dimColor>⚠️  Experimental preview</Text>
         </Box>
       );
     }
 
     // Wide: full ASCII art header
+    const wideBoxProps = showBorder
+      ? { borderStyle, borderColor: noColor ? undefined : borderColor }
+      : {};
     return (
-      <Box flexDirection="column" borderStyle="round" borderColor={noColor ? undefined : 'cyan'} paddingX={1}>
-        <Text bold color={noColor ? undefined : 'cyan'}>{'  ___  ___  _   _  _   ___\n / __|/ _ \\| | | |/_\\ |   \\\n \\__ \\ (_) | |_| / _ \\| |) |\n |___/\\__\\_\\\\___/_/ \\_\\___/'}</Text>
+      <Box flexDirection="column" {...wideBoxProps} paddingX={1}>
+        {brand.bannerArt && (
+          <Text bold color={noColor ? undefined : accent}>{brand.bannerArt}</Text>
+        )}
         <Text>{' '}</Text>
-        <Text dimColor>v{version} · Type naturally · <Text bold>@Agent</Text> to direct · <Text bold>/help</Text></Text>
-        <Text color={noColor ? undefined : 'yellow'} dimColor>⚠️  Experimental preview — file issues at github.com/bradygaster/squad</Text>
+        <Text dimColor>v{version} · {brand.hintFull}</Text>
+        <Text color={noColor ? undefined : warn} dimColor>⚠️  Experimental preview{issuesSuffix}</Text>
       </Box>
     );
   }, [noColor, version, tier]);

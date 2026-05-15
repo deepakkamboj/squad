@@ -103,6 +103,9 @@ export * from './roles/index.js';
 export * from './platform/index.js';
 export * from './storage/index.js';
 
+// Branding — pluggable look & feel for downstream consumers
+export { getBrand, getDefaultBrand, resetBrandCache, type Brand } from './branding/index.js';
+
 // Git-native state backends (Issue #807)
 export type { StateBackend, StateBackendType, StateBackendConfig } from './state-backend.js';
 export { WorktreeBackend, GitNotesBackend, OrphanBranchBackend, resolveStateBackend, validateStateKey, StateBackendStorageAdapter } from './state-backend.js';

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Text, useInput } from 'ink';
+import { getBrand } from '@bradygaster/squad-sdk';
 import { isNoColor, useTerminalWidth } from '../terminal.js';
 import { createCompleter } from '../autocomplete.js';
 
@@ -233,12 +234,14 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     );
   }
 
+  const brand = getBrand();
+  const accent = brand.accentColor;
   return (
     <Box flexDirection="column">
       <Box>
-        <Text color={noColor ? undefined : 'cyan'} bold>{narrow ? 'sq> ' : '◆ squad> '}</Text>
+        <Text color={noColor ? undefined : accent} bold>{narrow ? brand.narrowPrompt : brand.prompt}</Text>
         <Text>{value}</Text>
-        <Text color={noColor ? undefined : 'cyan'} bold>▌</Text>
+        <Text color={noColor ? undefined : accent} bold>▌</Text>
       </Box>
       {!value && (
         <Text dimColor>{getHintText(messageCount, narrow)}</Text>
