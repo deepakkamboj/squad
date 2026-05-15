@@ -1,0 +1,1 @@
+{"version":3,"file":"rc.d.ts","sourceRoot":"","sources":["../../../src/cli/commands/rc.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAyBH,MAAM,WAAW,SAAS;IACxB,MAAM,EAAE,OAAO,CAAC;IAChB,IAAI,EAAE,MAAM,CAAC;IACb,IAAI,CAAC,EAAE,MAAM,CAAC;CACf;AAED,wBAAsB,KAAK,CAAC,GAAG,EAAE,MAAM,EAAE,OAAO,EAAE,SAAS,GAAG,OAAO,CAAC,IAAI,CAAC,CA8Q1E"}

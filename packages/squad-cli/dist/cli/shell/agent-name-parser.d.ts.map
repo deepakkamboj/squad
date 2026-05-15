@@ -1,0 +1,1 @@
+{"version":3,"file":"agent-name-parser.d.ts","sourceRoot":"","sources":["../../../src/cli/shell/agent-name-parser.ts"],"names":[],"mappings":"AAAA;;;;;;;;;;GAUG;AACH,wBAAgB,yBAAyB,CACvC,WAAW,EAAE,MAAM,EACnB,eAAe,EAAE,MAAM,EAAE,GACxB;IAAE,SAAS,EAAE,MAAM,CAAC;IAAC,WAAW,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CA6CnD"}

@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# Pre-built dist for GitHub path dep install (no prepare script — these must be committed)
+!packages/squad-cli/dist/
+!packages/squad-scheduler/dist/
 .env
 *.tsbuildinfo
 coverage/

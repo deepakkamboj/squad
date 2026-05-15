@@ -1,0 +1,1 @@
+{"version":3,"file":"verbose.d.ts","sourceRoot":"","sources":["../../../../src/cli/commands/watch/verbose.ts"],"names":[],"mappings":"AAAA;;;GAGG;AACH,wBAAgB,mBAAmB,CAAC,OAAO,EAAE,OAAO;mBAEjC,OAAO,EAAE;oBAGR,OAAO,EAAE;qBAGR,MAAM;kBAGT,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC;EAQxC;AAED,MAAM,MAAM,aAAa,GAAG,UAAU,CAAC,OAAO,mBAAmB,CAAC,CAAC"}
