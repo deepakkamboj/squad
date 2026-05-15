@@ -108,15 +108,12 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
           const active = agent.status === 'streaming' || agent.status === 'working';
           const errored = agent.status === 'error';
           const statusLabel = getStatusTag(agent.status);
+          const nameColor = noColor ? undefined : active ? 'green' : errored ? 'red' : 'white';
           return (
             <Box key={agent.name} gap={0}>
               {!noColor && <Text color={active ? 'green' : errored ? 'red' : accent}>◆ </Text>}
               {noColor && <Text>◆ </Text>}
-              <Text
-                dimColor={!active && !errored}
-                bold={active}
-                color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
-              >
+              <Text bold={active} color={nameColor}>
                 {agent.name}
               </Text>
               {active && <><Text> </Text><PulsingDot /></>}
@@ -143,15 +140,12 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
           const active = agent.status === 'streaming' || agent.status === 'working';
           const errored = agent.status === 'error';
           const statusLabel = getStatusTag(agent.status);
+          const nameColor = noColor ? undefined : active ? 'green' : errored ? 'red' : 'white';
           return (
             <Box key={agent.name} gap={0}>
               {!noColor && <Text color={active ? 'green' : errored ? 'red' : accent}>◆ </Text>}
               {noColor && <Text>◆ </Text>}
-              <Text
-                dimColor={!active && !errored}
-                bold={active}
-                color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
-              >
+              <Text bold={active} color={nameColor}>
                 {agent.name}
               </Text>
               {active && <><Text> </Text><PulsingDot />{agent.activityHint && <Text bold> {agent.activityHint.slice(0, 30)}</Text>}</>}
@@ -203,9 +197,8 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
                 {!noColor && <Text color={active ? 'green' : errored ? 'red' : accent}>◆ </Text>}
                 {noColor && <Text>◆ </Text>}
                 <Text
-                  dimColor={!active && !errored}
                   bold={active}
-                  color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
+                  color={noColor ? undefined : active ? 'green' : errored ? 'red' : 'white'}
                 >
                   {agent.name}
                 </Text>
