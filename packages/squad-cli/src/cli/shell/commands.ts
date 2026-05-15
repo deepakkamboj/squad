@@ -6,7 +6,7 @@ import { listSessions, loadSessionById, type SessionData } from './session-store
 import { formatAgentLine, getStatusTag } from './agent-status.js';
 import type { ShellMessage } from './types.js';
 import path from 'node:path';
-import { FSStorageProvider } from '@bradygaster/squad-sdk';
+import { FSStorageProvider, getBrand } from '@bradygaster/squad-sdk';
 import { runNapSync, formatNapReport } from '../core/nap.js';
 
 const storage = new FSStorageProvider();
@@ -82,7 +82,7 @@ function handleStatus(context: CommandContext): CommandResult {
   const agents = context.registry.getAll();
   const active = context.registry.getActive();
   const lines = [
-    `${BOLD}Squad Status${RESET}`,
+    `${BOLD}${getBrand().nameUpper} Status${RESET}`,
     '-----------',
     `Team:     ${agents.length} agent${agents.length !== 1 ? 's' : ''} (${active.length} active)`,
     `Root:     ${DIM}${context.teamRoot}${RESET}`,
