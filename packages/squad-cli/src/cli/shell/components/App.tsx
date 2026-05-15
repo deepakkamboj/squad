@@ -382,11 +382,27 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
     const wideBoxProps = showBorder
       ? { borderStyle, borderColor: noColor ? undefined : borderColor }
       : {};
+
+    // Rainbow banner: cycle hue across characters within each row so every
+    // glyph has a slightly different color — full spectrum left-to-right.
+    const RAINBOW_HEX = [
+      '#FF4040', '#FF6820', '#FFB800', '#40C860',
+      '#40AAFF', '#7B5FFF', '#CC40FF', '#FF40AA',
+    ];
+    const rainbowLines = brand.bannerArt
+      ? brand.bannerArt.split('\n').map((line, li) => {
+          if (noColor) return <Text key={li} bold>{line}</Text>;
+          const chars = line.split('');
+          const coloredChars = chars.map((ch, ci) => (
+            <Text key={ci} bold color={RAINBOW_HEX[(li + ci) % RAINBOW_HEX.length]}>{ch}</Text>
+          ));
+          return <Box key={li}>{coloredChars}</Box>;
+        })
+      : null;
+
     return (
       <Box flexDirection="column" {...wideBoxProps} paddingX={1}>
-        {brand.bannerArt && (
-          <Text bold color={noColor ? undefined : accent}>{brand.bannerArt}</Text>
-        )}
+        {rainbowLines && <Box flexDirection="column">{rainbowLines}</Box>}
         <Text>{' '}</Text>
         <Text dimColor>v{version} · {brand.hintFull}</Text>
         <Text color={noColor ? undefined : warn} dimColor>⚠️  Experimental preview{issuesSuffix}</Text>

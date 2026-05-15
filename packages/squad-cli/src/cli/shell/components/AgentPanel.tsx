@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Text } from 'ink';
-import { getRoleEmoji } from '../lifecycle.js';
+import { getBrand } from '@bradygaster/squad-sdk';
 import { isNoColor, useLayoutTier } from '../terminal.js';
 import { Separator } from './Separator.js';
 import { useCompletionFlash } from '../useAnimation.js';
@@ -60,6 +60,7 @@ function formatElapsed(seconds: number): string {
 export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent }) => {
   const noColor = isNoColor();
   const tier = useLayoutTier();
+  const accent = getBrand().accentColor;
 
   // Re-render gate: store elapsed strings in a ref so the timer only triggers
   // a React re-render (via the tick counter) when a visible value changes.
@@ -109,12 +110,14 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
           const statusLabel = getStatusTag(agent.status);
           return (
             <Box key={agent.name} gap={0}>
+              {!noColor && <Text color={active ? 'green' : errored ? 'red' : accent}>◆ </Text>}
+              {noColor && <Text>◆ </Text>}
               <Text
                 dimColor={!active && !errored}
                 bold={active}
                 color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
               >
-                {getRoleEmoji(agent.role)} {agent.name}
+                {agent.name}
               </Text>
               {active && <><Text> </Text><PulsingDot /></>}
               {errored && <Text color={noColor ? undefined : 'red'} bold> ERR</Text>}
@@ -142,12 +145,14 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
           const statusLabel = getStatusTag(agent.status);
           return (
             <Box key={agent.name} gap={0}>
+              {!noColor && <Text color={active ? 'green' : errored ? 'red' : accent}>◆ </Text>}
+              {noColor && <Text>◆ </Text>}
               <Text
                 dimColor={!active && !errored}
                 bold={active}
                 color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
               >
-                {getRoleEmoji(agent.role)} {agent.name}
+                {agent.name}
               </Text>
               {active && <><Text> </Text><PulsingDot />{agent.activityHint && <Text bold> {agent.activityHint.slice(0, 30)}</Text>}</>}
               {errored && <Text color={noColor ? undefined : 'red'} bold> {statusLabel}</Text>}
@@ -195,12 +200,14 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
             const elapsed = elapsedRef.current.get(agent.name);
             return (
               <Box key={agent.name} paddingLeft={2}>
+                {!noColor && <Text color={active ? 'green' : errored ? 'red' : accent}>◆ </Text>}
+                {noColor && <Text>◆ </Text>}
                 <Text
                   dimColor={!active && !errored}
                   bold={active}
                   color={noColor ? undefined : active ? 'green' : errored ? 'red' : undefined}
                 >
-                  {getRoleEmoji(agent.role)} {agent.name}
+                  {agent.name}
                 </Text>
                 <Text dimColor>  {agent.role}</Text>
                 {active && (
@@ -237,7 +244,7 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
             const hint = a.activityHint ?? 'working';
             return (
               <Text key={a.name} color={noColor ? undefined : 'yellow'}>
-                {' '}{getRoleEmoji(a.role)} {a.name} — {hint}{elapsed ? ` (${elapsed})` : ''}
+                {' '}◆ {a.name} — {hint}{elapsed ? ` (${elapsed})` : ''}
               </Text>
             );
           })}
