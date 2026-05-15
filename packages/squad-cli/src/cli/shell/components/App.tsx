@@ -501,7 +501,7 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
       </Box>
       {/* Fixed input box at bottom — Copilot/Claude style */}
       <Box marginTop={1} borderStyle={noColor ? undefined : 'round'} borderColor={noColor ? undefined : 'cyan'} paddingX={1}>
-        <InputPrompt onSubmit={handleSubmit} disabled={processing} agentNames={agents.map(a => a.name)} messageCount={messages.length} />
+        <InputPrompt onSubmit={handleSubmit} disabled={processing} agents={agents.map(a => ({ name: a.name, description: a.role }))} messageCount={messages.length} />
       </Box>
       {/* version is shown in the Static header — no footer duplicate needed */}
     </Box>

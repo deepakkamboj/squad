@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { getBrand } from '@bradygaster/squad-sdk';
 import { isNoColor, useTerminalWidth } from '../terminal.js';
-import { createCompleter, getSuggestions, type Suggestion } from '../autocomplete.js';
+import { createCompleter, getSuggestions, type Suggestion, type AgentInfo } from '../autocomplete.js';
 
 interface InputPromptProps {
   onSubmit: (value: string) => void;
   prompt?: string;
   disabled?: boolean;
-  agentNames?: string[];
+  agents?: AgentInfo[];
   /** Number of messages exchanged so far — drives progressive hint text. */
   messageCount?: number;
 }
@@ -67,7 +67,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   onSubmit,
   prompt = '> ',
   disabled = false,
-  agentNames = [],
+  agents = [],
   messageCount = 0,
 }) => {
   const noColor = isNoColor();
@@ -110,8 +110,8 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   // Suggestions derived from current value; kept in a ref so useInput can read them synchronously
   const suggestions = useMemo(
-    () => (disabled ? [] : getSuggestions(value, agentNames)),
-    [value, agentNames, disabled],
+    () => (disabled ? [] : getSuggestions(value, agents)),
+    [value, agents, disabled],
   );
   const suggestionsRef = useRef<Suggestion[]>([]);
   suggestionsRef.current = suggestions;
@@ -140,7 +140,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     wasDisabledRef.current = disabled;
   }, [disabled]);
 
-  const completer = useMemo(() => createCompleter(agentNames), [agentNames]);
+  const completer = useMemo(() => createCompleter(agents), [agents]);
 
   // Tab-cycling state (used when no suggestion box is shown)
   const tabMatchesRef = useRef<string[]>([]);
@@ -250,7 +250,8 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       if (!dismissedRef.current && suggestionsRef.current.length > 0) {
         const n = suggestionsRef.current.length;
         const cur = suggestionIndexRef.current;
-        setSuggIdx(cur <= 0 ? n - 1 : cur - 1);
+        // First press enters the list at the top (index 0); subsequent presses wrap upward
+        setSuggIdx(cur < 0 ? 0 : cur === 0 ? n - 1 : cur - 1);
         return;
       }
       if (history.length > 0) {

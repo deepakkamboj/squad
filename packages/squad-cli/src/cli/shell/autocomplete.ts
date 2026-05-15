@@ -10,6 +10,12 @@ export interface Suggestion {
   description?: string;
 }
 
+/** Minimal agent metadata needed for suggestions. */
+export interface AgentInfo {
+  name: string;
+  description?: string;
+}
+
 /** Slash commands with descriptions for the suggestion box. */
 const SLASH_COMMANDS_META: Suggestion[] = [
   { label: '/status',   description: 'show active agents and session info' },
@@ -33,14 +39,14 @@ export type CompleterFunction = (line: string) => CompleterResult;
  * Return suggestions for the current input value.
  * Returns an empty array when there is nothing to suggest.
  */
-export function getSuggestions(line: string, agentNames: string[]): Suggestion[] {
+export function getSuggestions(line: string, agents: AgentInfo[]): Suggestion[] {
   const trimmed = line.trimStart();
 
   if (trimmed.startsWith('@')) {
     const partial = trimmed.slice(1).toLowerCase();
-    return agentNames
-      .filter(name => name.toLowerCase().startsWith(partial))
-      .map(name => ({ label: `@${name} ` }));
+    return agents
+      .filter(a => a.name.toLowerCase().startsWith(partial))
+      .map(a => ({ label: `@${a.name} `, description: a.description }));
   }
 
   if (trimmed.startsWith('/')) {
@@ -55,9 +61,9 @@ export function getSuggestions(line: string, agentNames: string[]): Suggestion[]
  * Create a readline-compatible completer function (used for Tab cycling).
  * Completes @AgentName and /command prefixes.
  */
-export function createCompleter(agentNames: string[]): CompleterFunction {
+export function createCompleter(agents: AgentInfo[]): CompleterFunction {
   return (line: string): CompleterResult => {
-    const suggestions = getSuggestions(line, agentNames);
+    const suggestions = getSuggestions(line, agents);
     if (suggestions.length === 0) return [[], line];
     return [suggestions.map(s => s.label), line.trimStart()];
   };
