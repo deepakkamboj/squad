@@ -35,7 +35,7 @@ export { loadConfig, watchConfig } from './loader.js';
 export { parseCron, nextDue, describeCron, validateCron } from './cron.js';
 export { loadState, saveState } from './state.js';
 export { emitEvent, emitGlobal } from './events.js';
-export { schedulerHome, configFilePath } from './paths.js';
+export { schedulerHome, configFilePath, pidPath, eventsPath, logPath } from './paths.js';
 export type {
   SchedulerJob,
   ScheduleConfig,
